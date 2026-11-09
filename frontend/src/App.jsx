@@ -889,9 +889,26 @@ function Feedback({ initialMeal }) {
 
 function AdminPaymentsTable() {
   const [fees, setFees] = useState([]);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
   useEffect(() => {
     api("/fees").then(setFees);
   }, []);
+  const approve = async (id) => {
+    setBusy(id);
+    setError("");
+    try {
+      const updated = await api(`/fees/${id}/paid`, { method: "PATCH" });
+      if (!updated?._id) throw new Error("Payment approval failed");
+      setFees((current) =>
+        current.map((fee) => (fee._id === updated._id ? { ...fee, ...updated } : fee)),
+      );
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setBusy("");
+    }
+  };
   return (
     <Card className="mt-5 overflow-hidden !p-0">
       <div className="border-b border-black/5 p-5 dark:border-white/10">
@@ -903,6 +920,7 @@ function AdminPaymentsTable() {
           Payments are recorded here after the mess office receives cash or
           another offline payment.
         </p>
+        {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
@@ -913,6 +931,7 @@ function AdminPaymentsTable() {
               <th className="px-5 py-3 font-medium">Amount</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">Paid on</th>
+              <th className="px-5 py-3 font-medium">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5 dark:divide-white/10">
@@ -932,12 +951,28 @@ function AdminPaymentsTable() {
                 <td className="px-5 py-4 text-black/55">
                   {fee.paidOn ? new Date(fee.paidOn).toLocaleDateString() : "—"}
                 </td>
+                <td className="px-5 py-4">
+                  {fee.status === "pending" ? (
+                    <Button
+                      className="whitespace-nowrap px-4 py-2 text-xs"
+                      disabled={busy === fee._id}
+                      onClick={() => approve(fee._id)}
+                    >
+                      {busy === fee._id && <Spinner />}
+                      {busy === fee._id ? "Approving…" : "Approve payment"}
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-black/45 dark:text-white/65">
+                      Approved
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
             {!fees.length && (
               <tr>
                 <td
-                  colSpan="5"
+                  colSpan="6"
                   className="px-5 py-8 text-center text-sm text-black/45"
                 >
                   No fee records yet.
