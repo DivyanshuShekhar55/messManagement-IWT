@@ -31,6 +31,7 @@ const Meal =
       veg: { type: Boolean, default: true },
       calories: Number,
       protein: Number,
+      price: { type: Number, default: 80 },
       allergens: [String],
     }),
   );
@@ -43,6 +44,24 @@ const Fee =
         user: ref,
         month: String,
         amount: Number,
+        status: { type: String, default: "pending" },
+        paidOn: Date,
+      },
+      T,
+    ),
+  );
+const Coupon =
+  models.Coupon ||
+  model(
+    "Coupon",
+    new Schema(
+      {
+        user: ref,
+        meal: ref,
+        day: Number,
+        type: String,
+        item: String,
+        price: { type: Number, default: 80 },
         status: { type: String, default: "pending" },
         paidOn: Date,
       },
@@ -84,6 +103,7 @@ const defaultOdiaMenu = [
     veg: !(items.some((item) => /machha|chicken|kankada/i.test(item))),
     calories: [420, 680, 220, 720][mealIndex],
     protein: [10, 22, 6, 25][mealIndex],
+    price: [50, 80, 40, 100][mealIndex],
     allergens: items.some((item) => /pitha|puri|upma/i.test(item)) ? ["gluten"] : [],
   })),
 );
@@ -215,6 +235,49 @@ app.patch("/api/fees/:id/paid", A, async (q, s) =>
   s.json(
     await Fee.findByIdAndUpdate(
       q.params.id,
+      { status: "paid", paidOn: new Date() },
+      { new: true },
+    ),
+  ),
+);
+app.patch("/api/fees/:id/pay", S, async (q, s) =>
+  s.json(
+    await Fee.findOneAndUpdate(
+      { _id: q.params.id, user: q.u.id, status: "pending" },
+      { status: "paid", paidOn: new Date() },
+      { new: true },
+    ),
+  ),
+);
+app.get("/api/coupons", S, async (q, s) =>
+  s.json(await Coupon.find({ user: q.u.id }).sort({ createdAt: -1 })),
+);
+app.post("/api/coupons", S, async (q, s) => {
+  const { meal, day, type, item, price = 80 } = q.body;
+  if (!item || !type || day === undefined)
+    return s.status(400).json({ error: "Meal details are required" });
+  const existing = await Coupon.findOne({
+    user: q.u.id,
+    day,
+    type,
+    item,
+  });
+  if (existing) return s.json(existing);
+  s.json(
+    await Coupon.create({
+      user: q.u.id,
+      meal,
+      day,
+      type,
+      item,
+      price,
+    }),
+  );
+});
+app.patch("/api/coupons/:id/pay", S, async (q, s) =>
+  s.json(
+    await Coupon.findOneAndUpdate(
+      { _id: q.params.id, user: q.u.id, status: "pending" },
       { status: "paid", paidOn: new Date() },
       { new: true },
     ),

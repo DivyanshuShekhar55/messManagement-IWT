@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 
 const api = async (path, options = {}) => {
   const token = localStorage.getItem("plate-token");
@@ -88,6 +89,130 @@ const Status = ({ value }) => (
     {value}
   </span>
 );
+
+function QrDialog({
+  title,
+  amount,
+  data,
+  actionLabel,
+  onAction,
+  secondaryLabel,
+  onSecondary,
+  onClose,
+  busy,
+}) {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    QRCode.toDataURL(data, { width: 220, margin: 1 }).then(setSrc);
+  }, [data]);
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
+      <div className="w-full max-w-sm rounded-[1.65rem] bg-white p-6 text-center shadow-2xl dark:bg-[#211d2b]">
+        <p className="font-mono text-xs uppercase tracking-[.17em] text-black/45 dark:text-white/65">
+          Offline payment
+        </p>
+        <h3 className="mt-2 text-xl font-extrabold">{title}</h3>
+        <p className="mt-2 text-3xl font-extrabold">₹{amount}</p>
+        {src ? (
+          <img
+            className="mx-auto mt-5 rounded-xl bg-white p-2"
+            src={src}
+            alt="Payment QR code"
+          />
+        ) : (
+          <div className="mx-auto mt-5 h-[220px] w-[220px] animate-pulse rounded-xl bg-black/10" />
+        )}
+        <p className="mt-4 text-xs text-black/50 dark:text-white/65">
+          Scan this code or show it at the mess office.
+        </p>
+        <div className="mt-5 flex justify-center gap-2">
+          <Button variant="light" onClick={onClose}>
+            Close
+          </Button>
+          {secondaryLabel && (
+            <Button variant="light" disabled={busy || !src} onClick={onSecondary}>
+              {secondaryLabel}
+            </Button>
+          )}
+          <Button disabled={busy || !src} onClick={onAction}>
+            {busy && <Spinner />}
+            {busy ? "Updating…" : actionLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CouponDialog({ meal, onRate, onClose }) {
+  const [coupon, setCoupon] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const item = meal.items.join(", ");
+  const price = meal.price || 80;
+  useEffect(() => {
+    api("/coupons").then((coupons) =>
+      setCoupon(
+        coupons.find(
+          (entry) =>
+            entry.day === meal.day &&
+            entry.type === meal.type &&
+            entry.item === item,
+        ) || null,
+      ),
+    );
+  }, [item, meal.day, meal.type]);
+  const save = async (payNow) => {
+    setBusy(true);
+    try {
+      const saved = await api("/coupons", {
+        method: "POST",
+        body: { meal: meal._id, day: meal.day, type: meal.type, item, price },
+      });
+      if (payNow && saved.status !== "paid") {
+        await api(`/coupons/${saved._id}/pay`, { method: "PATCH" });
+        setCoupon({ ...saved, status: "paid", paidOn: new Date().toISOString() });
+      } else {
+        setCoupon(saved);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (coupon) {
+    return (
+      <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
+        <div className="w-full max-w-sm rounded-[1.65rem] bg-white p-6 shadow-2xl dark:bg-[#211d2b]">
+          <p className="font-mono text-xs uppercase tracking-[.17em] text-black/45 dark:text-white/65">
+            Coupon status
+          </p>
+          <h3 className="mt-2 text-xl font-extrabold">{item}</h3>
+          <p className="mt-2 text-sm text-black/55 dark:text-white/75">
+            This coupon is already in your history.
+          </p>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="light" onClick={onClose}>
+              Close
+            </Button>
+            <Button onClick={() => onRate(meal)}>Give feedback</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <QrDialog
+      title={`${days[meal.day]} ${meal.type} coupon`}
+      amount={price}
+      data={`platemate-coupon:${meal.day}:${meal.type}:${item}`}
+      actionLabel="Buy coupon"
+      secondaryLabel="Pay later"
+      busy={busy}
+      onClose={onClose}
+      onAction={() => save(true)}
+      onSecondary={() => save(false)}
+    />
+  );
+}
 
 const VegMark = ({ veg }) => (
   <span
@@ -222,7 +347,7 @@ function Auth({ onLogin }) {
   );
 }
 
-function Menu({ onRate }) {
+function Menu({ onRate, onBuy }) {
   const [menu, setMenu] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -348,7 +473,12 @@ function Menu({ onRate }) {
                       <VegMark veg={meal.veg} />
                       {meal.type}
                     </div>
-                    <p className="mt-1">{meal.items.join(", ")}</p>
+                    <button
+                      onClick={() => onBuy?.(meal)}
+                      className="mt-1 text-left hover:text-[#6b398e] dark:hover:text-[#dbacfc]"
+                    >
+                      {meal.items.join(", ")}
+                    </button>
                   </div>
                 ))}
                 {!mealsForDay(index).length && (
@@ -372,9 +502,12 @@ function Menu({ onRate }) {
                 </div>
                 {meal ? (
                   <>
-                    <h3 className="mt-4 text-lg font-bold leading-snug">
+                    <button
+                      onClick={() => onBuy?.(meal)}
+                      className="mt-4 text-left text-lg font-bold leading-snug hover:text-[#6b398e] dark:hover:text-[#dbacfc]"
+                    >
                       {meal.items.join(", ")}
-                    </h3>
+                    </button>
                     <div className="mt-5 flex items-center gap-3 text-xs text-black/50">
                       <span>{meal.calories || "—"} kcal</span>
                       <span>·</span>
@@ -386,12 +519,20 @@ function Menu({ onRate }) {
                       </p>
                     )}{" "}
                     {onRate && (
-                      <button
-                        onClick={() => onRate(meal)}
-                        className="mt-4 text-xs font-bold underline underline-offset-4"
-                      >
-                        Rate this meal →
-                      </button>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <button
+                          onClick={() => onBuy(meal)}
+                          className="rounded-full bg-[#dbacfc] px-4 py-2 text-xs font-bold text-[#171322]"
+                        >
+                          Buy coupon · ₹{meal.price || 80}
+                        </button>
+                        <button
+                          onClick={() => onRate(meal)}
+                          className="text-xs font-bold underline underline-offset-4"
+                        >
+                          Rate this meal →
+                        </button>
+                      </div>
                     )}
                   </>
                 ) : (
@@ -410,10 +551,39 @@ function Menu({ onRate }) {
 
 function Fees() {
   const [fees, setFees] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const load = () =>
+    Promise.all([api("/fees"), api("/coupons")]).then(([feeData, couponData]) => {
+      setFees(feeData);
+      setCoupons(couponData);
+    });
   useEffect(() => {
-    api("/fees").then(setFees);
+    load();
   }, []);
   const pending = fees.filter((fee) => fee.status === "pending");
+  const pendingCoupons = coupons.filter((coupon) => coupon.status === "pending");
+  const outstandingTotal =
+    pending.reduce((sum, fee) => sum + (fee.amount || 0), 0) +
+    pendingCoupons.reduce((sum, coupon) => sum + (coupon.price || 0), 0);
+  const payAll = async () => {
+    setBusy(true);
+    try {
+      await Promise.all([
+        ...pending.map((fee) =>
+          api(`/fees/${fee._id}/pay`, { method: "PATCH" }),
+        ),
+        ...pendingCoupons.map((coupon) =>
+          api(`/coupons/${coupon._id}/pay`, { method: "PATCH" }),
+        ),
+      ]);
+      await load();
+      setPaymentOpen(false);
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -443,22 +613,98 @@ function Fees() {
           </p>
         </Card>
       </div>
+      <div className="grid gap-5 lg:grid-cols-[1.4fr_.6fr]">
+        <Card>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-bold">Outstanding bills</h3>
+            <span className="font-mono text-xs text-black/45">
+              {pending.length + pendingCoupons.length} total
+            </span>
+          </div>
+          <div className="divide-y divide-black/5 dark:divide-white/10">
+            {pending.map((fee) => (
+              <div key={fee._id} className="flex items-center justify-between gap-3 py-4">
+                <div>
+                  <b className="text-sm">{fee.month}</b>
+                  <p className="mt-1 text-xs text-black/45 dark:text-white/65">
+                    Mess fee · awaiting offline payment
+                  </p>
+                </div>
+                <b>₹{fee.amount}</b>
+              </div>
+            ))}
+            {pendingCoupons.map((coupon) => (
+              <div key={coupon._id} className="flex items-center justify-between gap-3 py-4">
+                <div>
+                  <b className="text-sm">{coupon.item}</b>
+                  <p className="mt-1 text-xs text-black/45 dark:text-white/65">
+                    {days[coupon.day]} {coupon.type} coupon · pay later
+                  </p>
+                </div>
+                <b>₹{coupon.price}</b>
+              </div>
+            ))}
+            {!pending.length && !pendingCoupons.length && (
+              <p className="py-6 text-sm text-black/45 dark:text-white/65">
+                No outstanding bills.
+              </p>
+            )}
+          </div>
+        </Card>
+        <Card className="h-fit lg:w-full">
+          <p className="text-xs uppercase tracking-[.17em] text-black/45 dark:text-white/65">
+            Net total
+          </p>
+          <p className="mt-3 text-4xl font-extrabold">₹{outstandingTotal}</p>
+          <p className="mt-2 text-xs text-black/50 dark:text-white/65">
+            Pay all outstanding mess fees and coupons together.
+          </p>
+          <Button
+            className="mt-5 w-full"
+            disabled={!outstandingTotal}
+            onClick={() => setPaymentOpen(true)}
+          >
+            Pay outstanding
+          </Button>
+        </Card>
+      </div>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-bold">Your fee statements</h3>
+          <h3 className="font-bold">Coupon history</h3>
           <span className="font-mono text-xs text-black/45">
-            {fees.length} total
+            {coupons.length} total
           </span>
         </div>
-        <div className="divide-y divide-black/5">
+        <div className="divide-y divide-black/5 dark:divide-white/10">
+          {coupons.map((coupon) => (
+            <div key={coupon._id} className="flex items-center justify-between gap-3 py-4">
+              <div>
+                <b className="text-sm">{coupon.item}</b>
+                <p className="mt-1 text-xs text-black/45 dark:text-white/65">
+                  {days[coupon.day]} {coupon.type} · ₹{coupon.price}
+                </p>
+              </div>
+              <Status value={coupon.status} />
+            </div>
+          ))}
+          {!coupons.length && (
+            <p className="py-6 text-sm text-black/45 dark:text-white/65">
+              No coupons bought yet.
+            </p>
+          )}
+        </div>
+      </Card>
+      <Card>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-bold">Fee history</h3>
+          <span className="font-mono text-xs text-black/45">{fees.length} total</span>
+        </div>
+        <div className="divide-y divide-black/5 dark:divide-white/10">
           {fees.map((fee) => (
-            <div
-              key={fee._id}
-              className="flex items-center justify-between gap-3 py-4"
-            >
+            <div key={fee._id} className="flex items-center justify-between gap-3 py-4">
               <div>
                 <b className="text-sm">{fee.month}</b>
-                <p className="mt-1 text-xs text-black/45">
+                <p className="mt-1 text-xs text-black/45 dark:text-white/65">
                   {fee.status === "paid"
                     ? `Paid ${new Date(fee.paidOn).toLocaleDateString()}`
                     : "Awaiting offline payment"}
@@ -471,10 +717,23 @@ function Fees() {
             </div>
           ))}
           {!fees.length && (
-            <p className="py-6 text-sm text-black/45">No fee statements yet.</p>
+            <p className="py-6 text-sm text-black/45 dark:text-white/65">
+              No fee statements yet.
+            </p>
           )}
         </div>
       </Card>
+      {paymentOpen && (
+        <QrDialog
+          title="Outstanding bills"
+          amount={outstandingTotal}
+          data={`platemate-outstanding:${pending.map((fee) => fee._id).join(",")}:${pendingCoupons.map((coupon) => coupon._id).join(",")}`}
+          actionLabel="Mark as paid"
+          busy={busy}
+          onClose={() => setPaymentOpen(false)}
+          onAction={payAll}
+        />
+      )}
     </div>
   );
 }
@@ -1310,6 +1569,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState("Home");
   const [feedbackMeal, setFeedbackMeal] = useState(null);
+  const [couponMeal, setCouponMeal] = useState(null);
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("plate-dark") === "1",
   );
@@ -1427,6 +1687,7 @@ export default function App() {
             ))}
           {tab === "Menu" && (
             <Menu
+              onBuy={setCouponMeal}
               onRate={
                 user.role === "admin"
                   ? undefined
@@ -1470,6 +1731,17 @@ export default function App() {
           <Icon>↪</Icon>Exit
         </button>
       </nav>
+      {couponMeal && (
+        <CouponDialog
+          meal={couponMeal}
+          onClose={() => setCouponMeal(null)}
+          onRate={(meal) => {
+            setCouponMeal(null);
+            setFeedbackMeal(meal);
+            setTab("Feedback");
+          }}
+        />
+      )}
     </div>
   );
 }
