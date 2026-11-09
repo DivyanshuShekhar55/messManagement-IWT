@@ -68,12 +68,44 @@ const Fb =
     ),
   );
 const Ann = models.Ann || model("Ann", new Schema({ text: String }, T));
+const defaultOdiaMenu = [
+  [["Pakhala bhata", "Aloo bhaja", "Dalma"], ["Rice", "Dalma", "Badi chura"], ["Chuda santula"], ["Rice", "Machha besara", "Saga bhaja"]],
+  [["Suji halwa", "Ghuguni"], ["Rice", "Dal", "Aloo posto"], ["Muri mixture"], ["Rice", "Chicken kasa", "Dalma"]],
+  [["Bara ghuguni"], ["Rice", "Dal", "Santula"], ["Dahi chuda"], ["Rice", "Paneer tarkari", "Dal"]],
+  [["Manda pitha", "Banana"], ["Rice", "Dalma", "Bhaja"], ["Chakuli pitha"], ["Rice", "Machha curry", "Kankada bhaja"]],
+  [["Upma", "Ghuguni"], ["Rice", "Dal", "Aloo bhaja"], ["Chuda ghasa"], ["Rice", "Chicken jhol", "Saga bhaja"]],
+  [["Dahi chuda", "Banana"], ["Rice", "Dalma", "Badi chura"], ["Muri santula"], ["Rice", "Machha tarkari", "Dal"]],
+  [["Puri", "Aloo dum"], ["Rice", "Dal", "Mix veg"], ["Rasabali"], ["Rice", "Paneer curry", "Dalma"]],
+].flatMap((day, index) =>
+  day.map((items, mealIndex) => ({
+    day: index,
+    type: ["breakfast", "lunch", "snacks", "dinner"][mealIndex],
+    items,
+    veg: !(items.some((item) => /machha|chicken|kankada/i.test(item))),
+    calories: [420, 680, 220, 720][mealIndex],
+    protein: [10, 22, 6, 25][mealIndex],
+    allergens: items.some((item) => /pitha|puri|upma/i.test(item)) ? ["gluten"] : [],
+  })),
+);
 const app = express();
 app.use(express.json());
+let dbConnection;
+const connectDb = () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured");
+  }
+  dbConnection ??= mongoose.connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000,
+  });
+  return dbConnection;
+};
 app.use(async (q, s, n) => {
-  global.db ??= mongoose.connect(process.env.MONGODB_URI);
-  await global.db;
-  n();
+  try {
+    await connectDb();
+    n();
+  } catch (error) {
+    n(error);
+  }
 });
 const auth = (role) => async (q, s, n) => {
   try {
@@ -129,10 +161,28 @@ app.post("/api/auth/login", async (q, s) => {
   s.json(sign(u));
 });
 app.get("/api/me", S, (q, s) => s.json(sign(q.u).user));
-app.get("/api/menu", S, async (q, s) =>
-  s.json(await Meal.find().sort({ day: 1 })),
+app.get("/api/menu", S, async (q, s) => {
+  let menu = await Meal.find().sort({ day: 1, type: 1 });
+  if (!menu.length) {
+    await Meal.insertMany(defaultOdiaMenu);
+    menu = await Meal.find().sort({ day: 1, type: 1 });
+  }
+  s.json(menu);
+});
+app.post("/api/menu/seed", A, async (q, s) => {
+  await Meal.deleteMany({});
+  const menu = await Meal.insertMany(defaultOdiaMenu);
+  s.json(menu);
+});
+app.post("/api/menu", A, async (q, s) =>
+  s.json(
+    await Meal.findOneAndUpdate(
+      { day: q.body.day, type: q.body.type },
+      q.body,
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    ),
+  ),
 );
-app.post("/api/menu", A, async (q, s) => s.json(await Meal.create(q.body)));
 app.delete("/api/menu/:id", A, async (q, s) =>
   s.json(await Meal.findByIdAndDelete(q.params.id)),
 );
@@ -191,6 +241,14 @@ app.patch("/api/feedback/:id", A, async (q, s) =>
     ),
   ),
 );
-app.use((e, q, s, n) => s.status(500).json({ error: e.message }));
+app.use((e, q, s, n) => {
+  if (e?.name === "MongooseServerSelectionError") {
+    return s.status(503).json({
+      error:
+        "MongoDB Atlas is unreachable. Add your current IP to Atlas Network Access and verify MONGODB_URI.",
+    });
+  }
+  s.status(500).json({ error: e.message || "Internal server error" });
+});
 export default app;
 if (!process.env.VERCEL) app.listen(3000, () => console.log("API :3000"));

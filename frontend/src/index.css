@@ -15,6 +15,15 @@ body {
   background: #fbf9ff;
   color: #171322;
 }
+.dark body { background: #12101a; color: #f7f3ff; }
+.dark .bg-white { background-color: #211d2b !important; }
+.dark .bg-white\/95 { background-color: rgb(33 29 43 / .95) !important; }
+.dark .bg-\[\#fbf9ff\] { background-color: #12101a !important; }
+.dark .bg-\[\#fbf6ff\] { background-color: #2a2436 !important; }
+.dark .bg-\[\#f7edff\], .dark .bg-\[\#f5eaff\], .dark .bg-\[\#f2e5ff\] { background-color: #342541 !important; }
+.dark .text-black\/45, .dark .text-black\/50, .dark .text-black\/55, .dark .text-black\/40 { color: rgb(247 243 255 / .58) !important; }
+.dark .border-black\/10, .dark .border-black\/\[\.07\], .dark .border-black\/\[\.06\], .dark .divide-black\/5 { border-color: rgb(255 255 255 / .12) !important; }
+.dark input, .dark textarea, .dark select { background-color: #211d2b; color: #f7f3ff; border-color: rgb(255 255 255 / .15); }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .grain {
