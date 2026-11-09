@@ -16,14 +16,44 @@ body {
   color: #171322;
 }
 .dark body { background: #12101a; color: #f7f3ff; }
+.dark header, .dark .bg-\[\#fbf9ff\]\/90 { background-color: rgb(25 21 34 / .96) !important; color: #f7f3ff; }
+.dark aside { background-color: #1b1725 !important; border-color: rgb(255 255 255 / .1) !important; }
+.dark h1, .dark h2, .dark h3, .dark h4, .dark b, .dark strong { color: #f7f3ff; }
+.dark p, .dark label, .dark span { color: inherit; }
+.dark .text-white\/50, .dark .text-white\/65 { color: rgb(255 255 255 / .65) !important; }
+.dark .text-\[\#6b398e\] { color: #dbacfc !important; }
+.dark .text-\[\#b66cf0\] { color: #dbacfc !important; }
+.dark .text-\[\#171322\] { color: #f7f3ff !important; }
+.dark .text-black\/35 { color: rgb(247 243 255 / .7) !important; }
+.dark button.bg-white, .dark button.border-black\/10 { color: #f7f3ff !important; }
+.dark button.bg-\[\#171322\] { color: #171322 !important; }
+.dark button.bg-\[\#dbacfc\] { color: #171322 !important; }
+.dark aside .text-black\/55, .dark aside .text-black\/35 { color: rgb(247 243 255 / .72) !important; }
+.dark .bg-\[\#e6f7ed\] { background-color: #183728 !important; }
 .dark .bg-white { background-color: #211d2b !important; }
 .dark .bg-white\/95 { background-color: rgb(33 29 43 / .95) !important; }
 .dark .bg-\[\#fbf9ff\] { background-color: #12101a !important; }
 .dark .bg-\[\#fbf6ff\] { background-color: #2a2436 !important; }
 .dark .bg-\[\#f7edff\], .dark .bg-\[\#f5eaff\], .dark .bg-\[\#f2e5ff\] { background-color: #342541 !important; }
-.dark .text-black\/45, .dark .text-black\/50, .dark .text-black\/55, .dark .text-black\/40 { color: rgb(247 243 255 / .58) !important; }
+.dark .bg-green-100 { background-color: #1d5b3b !important; color: #e8fff0 !important; }
+.dark .bg-yellow-100 { background-color: #66501a !important; color: #fff4c7 !important; }
+.dark .bg-lilac\/40 { background-color: #4a315c !important; color: #f7eaff !important; }
+.dark .bg-\[\#fbf6ff\] p, .dark .bg-\[\#fbf6ff\] button { color: #f7f3ff !important; }
+.dark .text-black\/45, .dark .text-black\/50, .dark .text-black\/55, .dark .text-black\/40 { color: rgb(247 243 255 / .72) !important; }
+.dark .text-black\/\[\.45\], .dark .text-black\/\[\.50\], .dark .text-black\/\[\.55\], .dark .text-black\/\[\.40\] { color: rgb(247 243 255 / .72) !important; }
+.dark .text-black { color: #f7f3ff !important; }
+.dark .text-\[\#171322\] { color: #f7f3ff !important; }
+.dark .bg-\[\#171322\] { background-color: #dbacfc !important; color: #171322 !important; }
+.dark .bg-\[\#171322\] .text-white, .dark .bg-\[\#171322\] .text-white\/50 { color: #171322 !important; }
 .dark .border-black\/10, .dark .border-black\/\[\.07\], .dark .border-black\/\[\.06\], .dark .divide-black\/5 { border-color: rgb(255 255 255 / .12) !important; }
 .dark input, .dark textarea, .dark select { background-color: #211d2b; color: #f7f3ff; border-color: rgb(255 255 255 / .15); }
+.dark table { color: #f7f3ff; }
+.dark th { color: rgb(255 255 255 / .6) !important; }
+.dark .bg-\[\#f7edff\] p, .dark .bg-\[\#f5eaff\] p { color: rgb(247 243 255 / .78) !important; }
+.dark svg + div, .dark svg ~ div { color: rgb(247 243 255 / .78) !important; }
+.dark .bg-\[\#171322\] .text-white\/50 { color: rgb(23 19 34 / .68) !important; }
+.dark .bg-\[\#171322\] .text-white\/65 { color: rgb(23 19 34 / .72) !important; }
+.dark header button[aria-label="Switch to light mode"] { background-color: #ffffff !important; color: #171322 !important; border-color: #ffffff !important; }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .grain {
