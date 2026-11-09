@@ -54,6 +54,46 @@ body {
 .dark .bg-\[\#171322\] .text-white\/50 { color: rgb(23 19 34 / .68) !important; }
 .dark .bg-\[\#171322\] .text-white\/65 { color: rgb(23 19 34 / .72) !important; }
 .dark header button[aria-label="Switch to light mode"] { background-color: #ffffff !important; color: #171322 !important; border-color: #ffffff !important; }
+.qr-dialog { color: #171322; }
+.qr-dialog-label,
+.qr-dialog-note { color: rgb(23 19 34 / .62) !important; }
+.qr-dialog-title,
+.qr-dialog-amount { color: #171322 !important; }
+.dark .qr-dialog { color: #f7f3ff; }
+.dark .qr-dialog-label,
+.dark .qr-dialog-note { color: rgb(247 243 255 / .78) !important; }
+.dark .qr-dialog-title,
+.dark .qr-dialog-amount { color: #f7f3ff !important; }
+.coupon-status-dialog .qr-dialog-title { color: #171322 !important; }
+.coupon-status-dialog .qr-dialog-note { color: rgb(23 19 34 / .72) !important; }
+.dark .coupon-status-dialog .qr-dialog-title { color: #f7f3ff !important; }
+.dark .coupon-status-dialog .qr-dialog-note { color: rgb(247 243 255 / .82) !important; }
+@media (prefers-color-scheme: dark) {
+  .coupon-status-dialog .qr-dialog-title { color: #f7f3ff !important; }
+  .coupon-status-dialog .qr-dialog-note { color: rgb(247 243 255 / .82) !important; }
+}
+.coupon-loading-text { color: #171322 !important; }
+.dark .coupon-loading-text { color: #f7f3ff !important; }
+.coupon-loading-dialog,
+.coupon-purchase-dialog { background-color: #ffffff !important; }
+.dark .coupon-loading-dialog,
+.dark .coupon-purchase-dialog { background-color: #211d2b !important; }
+.coupon-purchase-dialog .qr-dialog-title,
+.coupon-purchase-dialog .qr-dialog-amount { color: #171322 !important; }
+.dark .coupon-purchase-dialog .qr-dialog-title,
+.dark .coupon-purchase-dialog .qr-dialog-amount { color: #f7f3ff !important; }
+.fees-page { color: #171322; }
+.fees-page .text-black\/35,
+.fees-page .text-black\/40,
+.fees-page .text-black\/45,
+.fees-page .text-black\/50,
+.fees-page .text-black\/55 { color: rgb(23 19 34 / .62) !important; }
+.dark .fees-page { color: #f7f3ff; }
+.dark .fees-page .text-black\/35,
+.dark .fees-page .text-black\/40,
+.dark .fees-page .text-black\/45,
+.dark .fees-page .text-black\/50,
+.dark .fees-page .text-black\/55 { color: rgb(247 243 255 / .78) !important; }
 .fees-outstanding-card { background-color: #171322 !important; color: #ffffff !important; }
 .fees-outstanding-card .fees-card-label,
 .fees-outstanding-card .fees-card-note { color: rgb(255 255 255 / .68) !important; }

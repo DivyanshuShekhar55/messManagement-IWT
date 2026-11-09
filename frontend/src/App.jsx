@@ -107,12 +107,12 @@ function QrDialog({
   }, [data]);
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
-      <div className="w-full max-w-sm rounded-[1.65rem] bg-white p-6 text-center shadow-2xl dark:bg-[#211d2b]">
-        <p className="font-mono text-xs uppercase tracking-[.17em] text-black/45 dark:text-white/65">
+      <div className="coupon-purchase-dialog qr-dialog w-full max-w-sm rounded-[1.65rem] bg-white p-6 text-center shadow-2xl">
+        <p className="qr-dialog-label font-mono text-xs uppercase tracking-[.17em]">
           Offline payment
         </p>
-        <h3 className="mt-2 text-xl font-extrabold">{title}</h3>
-        <p className="mt-2 text-3xl font-extrabold">₹{amount}</p>
+        <h3 className="qr-dialog-title mt-2 text-xl font-extrabold">{title}</h3>
+        <p className="qr-dialog-amount mt-2 text-3xl font-extrabold">₹{amount}</p>
         {src ? (
           <img
             className="mx-auto mt-5 rounded-xl bg-white p-2"
@@ -122,7 +122,7 @@ function QrDialog({
         ) : (
           <div className="mx-auto mt-5 h-[220px] w-[220px] animate-pulse rounded-xl bg-black/10" />
         )}
-        <p className="mt-4 text-xs text-black/50 dark:text-white/65">
+        <p className="qr-dialog-note mt-4 text-xs">
           Scan this code or show it at the mess office.
         </p>
         <div className="mt-5 flex justify-center gap-2">
@@ -146,20 +146,34 @@ function QrDialog({
 
 function CouponDialog({ meal, onRate, onClose }) {
   const [coupon, setCoupon] = useState(null);
+  const [couponLoaded, setCouponLoaded] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [busy, setBusy] = useState(false);
   const item = meal.items.join(", ");
   const price = meal.price || 80;
   useEffect(() => {
-    api("/coupons").then((coupons) =>
-      setCoupon(
-        coupons.find(
-          (entry) =>
-            entry.day === meal.day &&
-            entry.type === meal.type &&
-            entry.item === item,
-        ) || null,
-      ),
-    );
+    let active = true;
+    api("/coupons")
+      .then((coupons) => {
+        if (!active) return;
+        setCoupon(
+          coupons.find(
+            (entry) =>
+              entry.day === meal.day &&
+              entry.type === meal.type &&
+              entry.item === item,
+          ) || null,
+        );
+      })
+      .catch((error) => {
+        if (active) setLoadError(error.message);
+      })
+      .finally(() => {
+        if (active) setCouponLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
   }, [item, meal.day, meal.type]);
   const save = async (payNow) => {
     setBusy(true);
@@ -178,15 +192,42 @@ function CouponDialog({ meal, onRate, onClose }) {
       setBusy(false);
     }
   };
+  if (!couponLoaded) {
+    return (
+      <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
+        <div className="coupon-loading-dialog qr-dialog w-full max-w-sm rounded-[1.65rem] bg-white p-6 text-center shadow-2xl">
+          <Spinner />
+          <p className="coupon-loading-text mt-3 text-sm font-bold">
+            Checking your coupon history…
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (loadError) {
+    return (
+      <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
+        <div className="qr-dialog w-full max-w-sm rounded-[1.65rem] bg-white p-6 text-center shadow-2xl dark:bg-[#211d2b]">
+          <p className="qr-dialog-title text-sm font-bold">
+            Could not check coupon history
+          </p>
+          <p className="qr-dialog-note mt-2 text-sm">{loadError}</p>
+          <Button className="mt-5" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+    );
+  }
   if (coupon) {
     return (
       <div className="fixed inset-0 z-50 grid place-items-center bg-[#171322]/60 p-5">
-        <div className="w-full max-w-sm rounded-[1.65rem] bg-white p-6 shadow-2xl dark:bg-[#211d2b]">
-          <p className="font-mono text-xs uppercase tracking-[.17em] text-black/45 dark:text-white/65">
+        <div className="coupon-status-dialog qr-dialog w-full max-w-sm rounded-[1.65rem] bg-white p-6 shadow-2xl dark:bg-[#211d2b]">
+          <p className="qr-dialog-label font-mono text-xs uppercase tracking-[.17em]">
             Coupon status
           </p>
-          <h3 className="mt-2 text-xl font-extrabold">{item}</h3>
-          <p className="mt-2 text-sm text-black/55 dark:text-white/75">
+          <h3 className="qr-dialog-title mt-2 text-xl font-extrabold">{item}</h3>
+          <p className="qr-dialog-note mt-2 text-sm">
             This coupon is already in your history.
           </p>
           <div className="mt-5 flex justify-end gap-2">
@@ -585,7 +626,7 @@ function Fees() {
     }
   };
   return (
-    <div className="space-y-5">
+    <div className="fees-page space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="fees-outstanding-card">
           <p className="fees-card-label text-xs uppercase tracking-[.17em]">
