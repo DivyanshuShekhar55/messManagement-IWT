@@ -77,12 +77,12 @@ const Select = ({ options, ...props }) => (
 
 const Status = ({ value }) => (
   <span
-    className={`rounded-full px-3 py-1 text-[11px] font-bold capitalize ${
+    className={`status-badge rounded-full px-3 py-1 text-[11px] font-bold capitalize ${
       value === "paid" || value === "resolved"
-        ? "bg-[#dff6e7] text-[#197240]"
+        ? "status-paid bg-[#dff6e7] text-[#197240]"
         : value === "in-progress"
-          ? "bg-[#fff0c8] text-[#8a6100]"
-          : "bg-[#f0eafa] text-[#604979]"
+          ? "status-in-progress bg-[#fff0c8] text-[#8a6100]"
+          : "status-pending bg-[#f0eafa] text-[#604979]"
     }`}
   >
     {value}
@@ -561,7 +561,7 @@ function Feedback({ initialMeal }) {
         {items.map((item) => (
           <Card key={item._id} className="!p-4">
             <div className="flex items-center justify-between gap-2">
-              <b className="text-sm capitalize">
+              <b className="feedback-kind text-sm capitalize">
                 {item.kind}
                 {item.anon && " · anonymous"}
               </b>
@@ -806,11 +806,6 @@ function Admin() {
               </p>
               <h3 className="mt-1 font-bold">Create fee for students</h3>
             </div>
-            <p className="rounded-xl border border-[#dbacfc]/40 bg-[#fbf6ff] p-3 text-xs leading-5 text-black/60 dark:border-[#dbacfc]/25 dark:bg-[#342541] dark:text-white/80">
-              Create a monthly statement after setting the month and amount.
-              Students pay the mess office offline; mark each statement paid
-              after the office confirms the payment.
-            </p>
             <Input
               placeholder="Month, e.g. Nov 2026"
               onChange={(e) => setFee({ ...fee, month: e.target.value })}
@@ -838,8 +833,8 @@ function Admin() {
                 className="border-t border-black/5 py-3 text-sm"
               >
                 <div className="flex justify-between gap-2">
-                  <b className="capitalize">{item.kind}</b>
-                  <span className="text-xs text-black/45">
+                  <b className="feedback-kind capitalize">{item.kind}</b>
+                  <span className="feedback-user text-xs text-black/45">
                     {item.user?.name || "Anonymous"}
                   </span>
                 </div>
@@ -1001,8 +996,8 @@ function AdminOverview({ setTab }) {
           <p className="text-xs uppercase tracking-[.16em] text-black/45">
             Paid bills
           </p>
-          <p className="mt-3 text-4xl font-extrabold">{paid.length}</p>
-          <p className="mt-1 text-xs text-black/50">
+          <p className="paid-bills-value mt-3 text-4xl font-extrabold">{paid.length}</p>
+          <p className="paid-bills-total mt-1 text-xs">
             ₹{paid.reduce((sum, fee) => sum + (fee.amount || 0), 0)} collected
           </p>
         </Card>

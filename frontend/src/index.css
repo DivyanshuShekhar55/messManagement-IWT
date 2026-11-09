@@ -54,6 +54,17 @@ body {
 .dark .bg-\[\#171322\] .text-white\/50 { color: rgb(23 19 34 / .68) !important; }
 .dark .bg-\[\#171322\] .text-white\/65 { color: rgb(23 19 34 / .72) !important; }
 .dark header button[aria-label="Switch to light mode"] { background-color: #ffffff !important; color: #171322 !important; border-color: #ffffff !important; }
+.feedback-kind { color: #171322; }
+.feedback-user { color: rgb(23 19 34 / .55); }
+.dark .feedback-kind { color: #f7f3ff !important; }
+.dark .feedback-user { color: rgb(247 243 255 / .78) !important; }
+.dark .status-paid { background-color: #1d5b3b !important; color: #e8fff0 !important; }
+.dark .status-in-progress { background-color: #66501a !important; color: #fff4c7 !important; }
+.dark .status-pending { background-color: #4a315c !important; color: #f7eaff !important; }
+.paid-bills-value { color: #171322; }
+.paid-bills-total { color: rgb(23 19 34 / .58); }
+.dark .paid-bills-value { color: #f7f3ff !important; }
+.dark .paid-bills-total { color: rgb(247 243 255 / .78) !important; }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .grain {
