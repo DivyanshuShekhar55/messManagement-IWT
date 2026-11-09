@@ -1531,6 +1531,72 @@ function AdminOverview({ setTab }) {
   );
 }
 
+function Announcements() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    api("/announcements")
+      .then(setItems)
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setLoading(false));
+  }, []);
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="font-mono text-xs uppercase tracking-[.2em] text-black/45">
+          Mess updates
+        </p>
+        <h2 className="mt-1 text-3xl font-extrabold tracking-[-.05em]">
+          Announcements
+        </h2>
+        <p className="mt-2 text-sm text-black/50">
+          Updates published by the mess team, newest first.
+        </p>
+      </div>
+      {loading && (
+        <Card className="flex items-center gap-3">
+          <Spinner />
+          <span className="text-sm">Loading announcements…</span>
+        </Card>
+      )}
+      {error && (
+        <Card>
+          <p className="text-sm text-red-600">{error}</p>
+        </Card>
+      )}
+      {!loading && !error && !items.length && (
+        <Card>
+          <p className="text-sm text-black/45">
+            No announcements have been published yet.
+          </p>
+        </Card>
+      )}
+      {!loading && !error && items.length > 0 && (
+        <div className="space-y-3">
+          {items.map((announcement) => (
+            <Card key={announcement._id} className="border-[#dbacfc]/50">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f2e5ff] text-[#6b398e]">
+                  ✦
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold leading-6">{announcement.text}</p>
+                  <p className="mt-2 text-xs text-black/45">
+                    {announcement.createdAt
+                      ? new Date(announcement.createdAt).toLocaleString()
+                      : "Mess team update"}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Home({ user, setTab, setMeal }) {
   const [menu, setMenu] = useState([]);
   useEffect(() => {
@@ -1691,6 +1757,7 @@ export default function App() {
       : [
           { id: "Home", label: "Overview", icon: "⌂" },
           { id: "Menu", label: "Menu", icon: "☀" },
+          { id: "Announcements", label: "Updates", icon: "✦" },
           { id: "Fees", label: "Fees", icon: "₹" },
           { id: "Feedback", label: "Feedback", icon: "↗" },
         ];
@@ -1783,6 +1850,9 @@ export default function App() {
                     }
               }
             />
+          )}
+          {tab === "Announcements" && user.role !== "admin" && (
+            <Announcements />
           )}
           {tab === "Fees" && user.role !== "admin" && <Fees />}
           {tab === "Feedback" && user.role !== "admin" && (

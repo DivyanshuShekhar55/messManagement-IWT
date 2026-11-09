@@ -207,7 +207,7 @@ app.delete("/api/menu/:id", A, async (q, s) =>
   s.json(await Meal.findByIdAndDelete(q.params.id)),
 );
 app.get("/api/announcements", S, async (q, s) =>
-  s.json(await Ann.find().sort({ createdAt: -1 }).limit(5)),
+  s.json(await Ann.find().sort({ createdAt: -1 })),
 );
 app.post("/api/announcements", A, async (q, s) =>
   s.json(await Ann.create({ text: q.body.text })),
