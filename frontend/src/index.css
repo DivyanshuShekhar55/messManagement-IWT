@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --color-lilac: #dbacfc;
+  --color-ink: #171322;
+  --color-paper: #fbf9ff;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #fbf9ff;
+  color: #171322;
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+.grain {
+  background-image: radial-gradient(#17132218 0.7px, transparent 0.7px);
+  background-size: 7px 7px;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { scrollbar-width: none; }

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "vite --host",
     "build": "vite build"
   },
   "dependencies": {
