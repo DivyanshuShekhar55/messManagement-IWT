@@ -73,16 +73,25 @@ await User.bulkWrite(accountRows.map((account, index) => ({
 const users = await User.find({ email: { $in: students.map((student) => student.email) } }).select("_id email").lean();
 const userByEmail = new Map(users.map((user) => [user.email, user._id]));
 await Fee.deleteMany({ user: { $in: users.map((user) => user._id) } });
-const months = ["Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026"];
+const now = new Date();
+const months = Array.from({ length: 4 }, (_, index) => {
+  const date = new Date(now);
+  date.setMonth(date.getMonth() - (3 - index));
+  return date.toLocaleString("en-IN", { month: "short", year: "numeric" });
+});
 const feeRows = students.flatMap((student, studentIndex) =>
   months.map((month, monthIndex) => {
     const paid = (studentIndex + monthIndex) % 3 !== 0;
+    const paidOn = new Date(now);
+    paidOn.setDate(
+      paidOn.getDate() - ((3 - monthIndex) * 14 + (studentIndex % 10)),
+    );
     return {
       user: userByEmail.get(student.email),
       month,
       amount: 2400,
       status: paid ? "paid" : "pending",
-      ...(paid ? { paidOn: new Date(2026, monthIndex, 8 + (studentIndex % 12)) } : {}),
+      ...(paid ? { paidOn } : {}),
     };
   }),
 );

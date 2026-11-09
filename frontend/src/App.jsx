@@ -903,6 +903,7 @@ function AdminPaymentsTable() {
       setFees((current) =>
         current.map((fee) => (fee._id === updated._id ? { ...fee, ...updated } : fee)),
       );
+      window.dispatchEvent(new Event("payment-updated"));
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -1253,13 +1254,17 @@ function AdminOverview({ setTab }) {
   const [menu, setMenu] = useState([]);
   const [loadingMenu, setLoadingMenu] = useState(true);
   const [chartHover, setChartHover] = useState(null);
-  useEffect(() => {
+  const loadOverview = () =>
     Promise.all([api("/fees"), api("/menu")])
       .then(([feeData, menuData]) => {
         setFees(feeData);
         setMenu(menuData);
       })
       .finally(() => setLoadingMenu(false));
+  useEffect(() => {
+    loadOverview();
+    window.addEventListener("payment-updated", loadOverview);
+    return () => window.removeEventListener("payment-updated", loadOverview);
   }, []);
   const pending = fees.filter((fee) => fee.status === "pending");
   const paid = fees.filter((fee) => fee.status === "paid");
@@ -1270,7 +1275,7 @@ function AdminOverview({ setTab }) {
     ? new Date(Math.max(...paidDates))
     : new Date();
   chartEnd.setHours(23, 59, 59, 999);
-  const weeks = Array.from({ length: 8 }, (_, index) => {
+  const weeklyCounts = Array.from({ length: 8 }, (_, index) => {
     const start = new Date(chartEnd);
     start.setDate(start.getDate() - (7 - index) * 7);
     start.setHours(0, 0, 0, 0);
@@ -1285,6 +1290,11 @@ function AdminOverview({ setTab }) {
           new Date(fee.paidOn) < end,
       ).length,
     };
+  });
+  let runningTotal = 0;
+  const weeks = weeklyCounts.map((week) => {
+    runningTotal += week.count;
+    return { ...week, count: runningTotal };
   });
   const maxPaid = Math.max(1, ...weeks.map((week) => week.count));
   const points = weeks
@@ -1407,7 +1417,7 @@ function AdminOverview({ setTab }) {
                   fill="#171322"
                   onMouseEnter={() =>
                     setChartHover({
-                      text: `${week.label}: ${week.count} paid bills`,
+                      text: `${week.label}: ${week.count} total paid bills`,
                       x: `${(index / 7) * 100}%`,
                     })
                   }
