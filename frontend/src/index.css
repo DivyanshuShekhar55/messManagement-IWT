@@ -54,6 +54,22 @@ body {
 .dark .bg-\[\#171322\] .text-white\/50 { color: rgb(23 19 34 / .68) !important; }
 .dark .bg-\[\#171322\] .text-white\/65 { color: rgb(23 19 34 / .72) !important; }
 .dark header button[aria-label="Switch to light mode"] { background-color: #ffffff !important; color: #171322 !important; border-color: #ffffff !important; }
+.fees-outstanding-card { background-color: #171322 !important; color: #ffffff !important; }
+.fees-outstanding-card .fees-card-label,
+.fees-outstanding-card .fees-card-note { color: rgb(255 255 255 / .68) !important; }
+.fees-outstanding-card .fees-card-value { color: #ffffff !important; }
+.fees-card-label { color: rgb(23 19 34 / .55); }
+.fees-card-value { color: #171322; }
+.fees-card-note { color: rgb(23 19 34 / .58); }
+.fees-paid-label { color: rgb(23 19 34 / .55); }
+.dark .fees-card-label { color: rgb(247 243 255 / .72) !important; }
+.dark .fees-card-value { color: #f7f3ff !important; }
+.dark .fees-card-note,
+.dark .fees-paid-label { color: rgb(247 243 255 / .78) !important; }
+.dark .fees-outstanding-card { background-color: #dbacfc !important; color: #171322 !important; }
+.dark .fees-outstanding-card .fees-card-label,
+.dark .fees-outstanding-card .fees-card-note,
+.dark .fees-outstanding-card .fees-card-value { color: #171322 !important; }
 .feedback-kind { color: #171322; }
 .feedback-user { color: rgb(23 19 34 / .55); }
 .dark .feedback-kind { color: #f7f3ff !important; }

@@ -417,28 +417,28 @@ function Fees() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="bg-[#171322] text-white">
-          <p className="text-xs uppercase tracking-[.17em] text-white/50">
+        <Card className="fees-outstanding-card">
+          <p className="fees-card-label text-xs uppercase tracking-[.17em]">
             Outstanding offline
           </p>
-          <p className="mt-3 text-4xl font-extrabold tracking-[-.06em]">
+          <p className="fees-card-value mt-3 text-4xl font-extrabold tracking-[-.06em]">
             ₹{pending.reduce((sum, fee) => sum + (fee.amount || 0), 0)}
           </p>
-          <p className="mt-2 text-xs text-white/50">
+          <p className="fees-card-note mt-2 text-xs">
             Pay at the mess office or accounts counter.
           </p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-[.17em] text-black/45">
+          <p className="fees-card-label text-xs uppercase tracking-[.17em]">
             Payment history
           </p>
-          <p className="mt-3 text-4xl font-extrabold tracking-[-.06em]">
+          <p className="fees-card-value mt-3 text-4xl font-extrabold tracking-[-.06em]">
             {fees.filter((fee) => fee.status === "paid").length}
-            <span className="ml-2 text-base font-medium text-black/45">
+            <span className="fees-paid-label ml-2 text-base font-medium">
               paid bills
             </span>
           </p>
-          <p className="mt-2 text-xs text-black/50">
+          <p className="fees-card-note mt-2 text-xs">
             Payments are recorded offline by the mess team.
           </p>
         </Card>
